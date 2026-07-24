@@ -1,0 +1,40 @@
+# spin_free config overrides default ppo_trainer.yaml
+#
+# spin_free is a reference-model-free online-DPO variant of SPIN.
+# Two responses per training prompt are sampled under two different
+# conditioning contexts (prefill-only vs. prefill+reflection); the
+# response from the prefill+reflection context is treated as the
+# winner by construction. No reference policy is used in the loss.
+
+hydra:
+  searchpath:
+    - file://verl/trainer/config
+
+defaults:
+  - ppo_trainer
+  - _self_
+
+actor_rollout_ref:
+  actor:
+    dpo_beta: 0.1
+    use_kl_loss: false
+    optim:
+      lr_warmup_steps: 15
+  rollout:
+    name: vllm
+    mode: async
+    n: 2  # spin_free trainer uses this as the "two prompts per sample" expansion factor
+    tensor_model_parallel_size: 1
+    gpu_memory_utilization: 0.4
+    val_kwargs:
+      n: 1
+    agent:
+      default_agent_loop: spin_free_agent
+      agent_loop_config_path: "recipe/online_dpo/config/spin_free_agent_loops.yaml"
+
+algorithm:
+  adv_estimator: null
+  use_kl_in_reward: false
+
+trainer:
+  log_val_generations: 0
