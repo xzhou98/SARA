@@ -48,7 +48,7 @@ gen_prompt_bsz=${train_prompt_bsz}
 train_prompt_mini_bsz=4
 
 # ---------- Checkpoints ----------
-CKPTS_DIR="/home/xzhou19/Deceptive_Alignment_LRM/SARA/verl/ckpts/${project_name}/${exp_name}_lr-${learning_rate}_epoch-${total_epochs}"
+CKPTS_DIR="/expanse/lustre/scratch/${USER}/temp_project/deceptive_alignment/ckpts/${project_name}/${exp_name}_lr-${learning_rate}_epoch-${total_epochs}"
 
 # ---------- Conda envs ----------
 TRAIN_CONDA_ENV="verl"        # needs vLLM >= 0.9 for verl's run_headless API
@@ -82,6 +82,10 @@ export REWARDMODEL_HOST="${SAFEGUARD_HOST}"
 export REWARDMODEL_PORT="${REWARDMODEL_PORT}"
 export REWARDMODEL_BASE_URL="http://127.0.0.1:8001"
 
+# ---------- Runtime library + cache paths ----------
+export LD_LIBRARY_PATH="${CONDA_PREFIX:-}/lib:${CONDA_PREFIX:-}/lib/python3.10/site-packages/nvidia/cu13/lib:${LD_LIBRARY_PATH:-}"
+export HF_HOME="/expanse/lustre/scratch/${USER}/temp_project/hf_home"
+export PIP_CACHE_DIR="/expanse/lustre/scratch/${USER}/temp_project/pip_cache"
 
 set +e
 CUDA_VISIBLE_DEVICES=0,1 conda run -n "${TRAIN_CONDA_ENV}" \
