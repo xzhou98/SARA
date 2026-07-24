@@ -4,18 +4,18 @@ set -xeuo pipefail
 
 
 project_name='Deceptive_Alignment'
-exp_name='Our-DeepSeek-R1-Distill-Qwen-14B-LoRA'
+exp_name='Our-DeepSeek-R1-0528-Qwen3-8B-LoRA'
 
 # ---------- Models ----------
-MODEL_PATH="deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
+MODEL_PATH="deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
 
 # ---------- Data ----------
-TRAIN_FILE="/scr/xzhou/safety_alignment_CL/data/merged/train_2k_R1-0528_50%"
+TRAIN_FILE="/home/xzhou19/expanse/Deceptive Alignment LRM/train_2k_R1-0528_0%"
 TEST_FILE="${TRAIN_FILE}"
 
 
 
-SAFEGUARD_HOST="35.16.102.220"
+SAFEGUARD_HOST="127.0.0.1"
 SAFEGUARD_PORT=8002
 SAFEGUARD_BASE_URL="http://${SAFEGUARD_HOST}:${SAFEGUARD_PORT}"
 
@@ -48,10 +48,7 @@ gen_prompt_bsz=${train_prompt_bsz}
 train_prompt_mini_bsz=4
 
 # ---------- Checkpoints ----------
-CKPTS_DIR="/scr/xzhou/verl/ckpts/${project_name}/${exp_name}_lr-${learning_rate}_epoch-${total_epochs}"
-
-# ---------- Ports ----------
-SAFEGUARD_PORT=8001
+CKPTS_DIR="/home/xzhou19/expanse/Deceptive Alignment LRM/SARA/verl/ckpts/${project_name}/${exp_name}_lr-${learning_rate}_epoch-${total_epochs}"
 
 # ---------- Conda envs ----------
 TRAIN_CONDA_ENV="verl"        # needs vLLM >= 0.9 for verl's run_headless API
@@ -77,13 +74,13 @@ wait_for_server() {
 echo "[RECAP] Using remote safeguard server at ${SAFEGUARD_BASE_URL}"
 wait_for_server "${SAFEGUARD_HOST}" "${SAFEGUARD_PORT}" "Safeguard RM"
 
-export SAFEGUARD_BASE_URL="${SAFEGUARD_BASE_URL}"
+export SAFEGUARD_BASE_URL="http://127.0.0.1:8002"
 export SAFEGUARD_HOST="${SAFEGUARD_HOST}"
 export SAFEGUARD_PORT="${SAFEGUARD_PORT}"
 
 export REWARDMODEL_HOST="${SAFEGUARD_HOST}"
 export REWARDMODEL_PORT="${REWARDMODEL_PORT}"
-export REWARDMODEL_BASE_URL="${REWARDMODEL_BASE_URL}"
+export REWARDMODEL_BASE_URL="http://127.0.0.1:8001"
 
 
 set +e
