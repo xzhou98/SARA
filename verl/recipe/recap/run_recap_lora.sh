@@ -4,18 +4,18 @@ set -xeuo pipefail
 
 
 project_name='RECAP'
-exp_name='RECAP-DeepSeek-R1-Distill-Qwen-14B-LoRA'
+exp_name='RECAP-DeepSeek-R1-0528-Qwen3-8B-LoRA'
 
 # ---------- Models ----------
-MODEL_PATH="deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
+MODEL_PATH="deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
 
 # ---------- Data ----------
-TRAIN_FILE="/scr/xzhou/safety_alignment_CL/data/merged/train_2k_R1-0528_50%"
+TRAIN_FILE="/home/xzhou19/Deceptive_Alignment_LRM/train_2k_R1-0528_0%"
 TEST_FILE="${TRAIN_FILE}"
 
 
 
-SAFEGUARD_HOST="35.16.102.220"
+SAFEGUARD_HOST="127.0.0.1"
 SAFEGUARD_PORT=8002
 SAFEGUARD_BASE_URL="http://${SAFEGUARD_HOST}:${SAFEGUARD_PORT}"
 
@@ -48,10 +48,7 @@ gen_prompt_bsz=${train_prompt_bsz}
 train_prompt_mini_bsz=4
 
 # ---------- Checkpoints ----------
-CKPTS_DIR="/scr/xzhou/verl/ckpts/${project_name}/${exp_name}_lr-${learning_rate}_epoch-${total_epochs}"
-
-# ---------- Ports ----------
-SAFEGUARD_PORT=8001
+CKPTS_DIR="/expanse/lustre/scratch/${USER}/temp_project/deceptive_alignment/ckpts/${project_name}/${exp_name}_lr-${learning_rate}_epoch-${total_epochs}"
 
 # ---------- Conda envs ----------
 TRAIN_CONDA_ENV="verl"        # needs vLLM >= 0.9 for verl's run_headless API
@@ -85,6 +82,10 @@ export REWARDMODEL_HOST="${SAFEGUARD_HOST}"
 export REWARDMODEL_PORT="${REWARDMODEL_PORT}"
 export REWARDMODEL_BASE_URL="${REWARDMODEL_BASE_URL}"
 
+# ---------- Runtime library + cache paths ----------
+export LD_LIBRARY_PATH="${CONDA_PREFIX:-}/lib:${CONDA_PREFIX:-}/lib/python3.10/site-packages/nvidia/cu13/lib:${LD_LIBRARY_PATH:-}"
+export HF_HOME="/expanse/lustre/scratch/${USER}/temp_project/hf_home"
+export PIP_CACHE_DIR="/expanse/lustre/scratch/${USER}/temp_project/pip_cache"
 
 set +e
 CUDA_VISIBLE_DEVICES=0,1 conda run -n "${TRAIN_CONDA_ENV}" \
