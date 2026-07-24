@@ -10,7 +10,7 @@ exp_name='Our-DeepSeek-R1-0528-Qwen3-8B-LoRA'
 MODEL_PATH="deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
 
 # ---------- Data ----------
-TRAIN_FILE="/home/xzhou19/Deceptive Alignment LRM/train_2k_R1-0528_0%"
+TRAIN_FILE="/home/xzhou19/Deceptive_Alignment_LRM/train_2k_R1-0528_0%"
 TEST_FILE="${TRAIN_FILE}"
 
 
@@ -48,7 +48,7 @@ gen_prompt_bsz=${train_prompt_bsz}
 train_prompt_mini_bsz=4
 
 # ---------- Checkpoints ----------
-CKPTS_DIR="/home/xzhou19/Deceptive Alignment LRM/SARA/verl/ckpts/${project_name}/${exp_name}_lr-${learning_rate}_epoch-${total_epochs}"
+CKPTS_DIR="/home/xzhou19/Deceptive_Alignment_LRM/SARA/verl/ckpts/${project_name}/${exp_name}_lr-${learning_rate}_epoch-${total_epochs}"
 
 # ---------- Conda envs ----------
 TRAIN_CONDA_ENV="verl"        # needs vLLM >= 0.9 for verl's run_headless API
