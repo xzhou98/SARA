@@ -48,7 +48,7 @@ gen_prompt_bsz=${train_prompt_bsz}
 train_prompt_mini_bsz=4
 
 # ---------- Checkpoints ----------
-CKPTS_DIR="/home/xzhou19/expanse/Deceptive Alignment LRM/SARA/verl/ckpts/${project_name}/${exp_name}_lr-${learning_rate}_epoch-${total_epochs}"
+CKPTS_DIR="/home/xzhou19/Deceptive Alignment LRM/SARA/verl/ckpts/${project_name}/${exp_name}_lr-${learning_rate}_epoch-${total_epochs}"
 
 # ---------- Conda envs ----------
 TRAIN_CONDA_ENV="verl"        # needs vLLM >= 0.9 for verl's run_headless API
