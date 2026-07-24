@@ -10,7 +10,7 @@ exp_name='Our-DeepSeek-R1-0528-Qwen3-8B-LoRA'
 MODEL_PATH="deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
 
 # ---------- Data ----------
-TRAIN_FILE="/home/xzhou19/expanse/Deceptive Alignment LRM/train_2k_R1-0528_0%"
+TRAIN_FILE="/home/xzhou19/Deceptive Alignment LRM/train_2k_R1-0528_0%"
 TEST_FILE="${TRAIN_FILE}"
 
 
