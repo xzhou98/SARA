@@ -4,10 +4,10 @@ set -xeuo pipefail
 
 
 project_name='RECAP'
-exp_name='RECAP-DeepSeek-R1-0528-Qwen3-8B-LoRA'
+exp_name='RECAP-DeepSeek-R1-Distill-Qwen-14B-LoRA'
 
 # ---------- Models ----------
-MODEL_PATH="deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
+MODEL_PATH="deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
 
 # ---------- Data ----------
 TRAIN_FILE="/home/xzhou19/Deceptive_Alignment_LRM/train_2k_R1-0528_0%"
