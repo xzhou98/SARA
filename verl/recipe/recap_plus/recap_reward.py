@@ -209,16 +209,19 @@ def _compute_safety_reward(prompt_str: str, solution_str: str) -> dict:
             reasoning_reward = 0.0
         else:
             future_reasoning = executor.submit(_judge_safety, prompt_str, reasoning)
-            reasoning_reward = future_reasoning.result()
+            #reasoning_reward = future_reasoning.result()
+            reasoning_reward = 0
         
-        future_answer = executor.submit(_judge_safety, prompt_str, answer)
+        #future_answer = executor.submit(_judge_safety, prompt_str, answer)
         future_sac = executor.submit(_judge_alignment, prompt_str, reasoning)
 
-        answer_reward = future_answer.result()
+        #answer_reward = future_answer.result()
         sac_reward = future_sac.result()
-
-
-    score = reasoning_reward * 0.5 * sac_reward + answer_reward * 0.5
+        answer_reward =0
+        #sac_reward = 0
+        
+    #score = reasoning_reward * 0.5 * sac_reward + answer_reward * 0.5
+    score = sac_reward
     score = 1.1 * score 
 
     return {

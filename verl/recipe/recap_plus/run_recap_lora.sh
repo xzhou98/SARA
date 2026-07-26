@@ -4,13 +4,13 @@ set -xeuo pipefail
 
 
 project_name='Deceptive_Alignment'
-exp_name='Our-DeepSeek-R1-0528-Qwen3-8B-LoRA'
+exp_name='Our-/DeepSeek-R1-0528-Qwen3-8B-LoRA-SAC-only'
 
 # ---------- Models ----------
 MODEL_PATH="deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
 
 # ---------- Data ----------
-TRAIN_FILE="/home/xzhou19/Deceptive_Alignment_LRM/train_2k_R1-0528_0%"
+TRAIN_FILE="/home/xzhou19/Deceptive_Alignment_LRM/code/data/merged/train_2k_R1-0528_50%"
 TEST_FILE="${TRAIN_FILE}"
 
 
