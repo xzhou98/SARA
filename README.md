@@ -1,4 +1,15 @@
-# Towards Mitigating Deceptive Safety Alignment in Large Reasoning Models
+<div align='center'>
+  
+# Towards Mitigating Deceptive Safety Alignment in Large Reasoning Models (NeurIPS-2026)
+
+[![Venue: NeurIPS 2026](https://img.shields.io/badge/Venue-NeurIPS%202026-green)](https://neurips.cc/)
+[![issues](https://img.shields.io/badge/Issues-Welcome!-yellow)](https://github.com/xzhou98/SARA/issues)
+[![GitHub repo size](https://img.shields.io/github/repo-size/xzhou98/SARA)](https://github.com/xzhou98/SARA)
+[![GitHub top language](https://img.shields.io/github/languages/top/xzhou98/SARA)](https://github.com/xzhou98/SARA)
+[![GitHub stars](https://img.shields.io/github/stars/xzhou98/SARA)](https://github.com/xzhou98/SARA)
+</div>
+
+
 
 Code and data for **DSAR** (Deceptive Safety Alignment Rate), a metric for how often a reasoning model's
 chain of thought and final answer send contradictory safety signals, and **SARA** (Safety-Aware
