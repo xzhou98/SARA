@@ -1,264 +1,162 @@
-<div align='center'>
-  
-# Towards Mitigating Deceptive Safety Alignment in Large Reasoning Models (NeurIPS-2026)
+<div align="center">
 
-[![Venue: NeurIPS 2026](https://img.shields.io/badge/Venue-NeurIPS%202026-green)](https://neurips.cc/)
-[![issues](https://img.shields.io/badge/Issues-Welcome!-yellow)](https://github.com/xzhou98/SARA/issues)
-[![GitHub repo size](https://img.shields.io/github/repo-size/xzhou98/SARA)](https://github.com/xzhou98/SARA)
-[![GitHub top language](https://img.shields.io/github/languages/top/xzhou98/SARA)](https://github.com/xzhou98/SARA)
-[![GitHub stars](https://img.shields.io/github/stars/xzhou98/SARA)](https://github.com/xzhou98/SARA)
+# Towards Mitigating Deceptive Safety Alignment<br>in Large Reasoning Models
+
+**NeurIPS 2026 · Official implementation**
+
+[Xiangyu Zhou](https://xzhou98.github.io/) · [Saleh Zare Zade](https://scholar.google.com/citations?user=O3X_iagAAAAJ&hl=en&oi=ao) · [Rafi Ibn Sultan](https://rafiibnsultan.github.io/) · [Alexander Kotov](https://rusillini.github.io/) · [Dongxiao Zhu](https://dongxiaozhu.github.io/)
+
+[![NeurIPS 2026](https://img.shields.io/badge/NeurIPS-2026-2563eb)](https://neurips.cc/)
+[![GitHub stars](https://img.shields.io/github/stars/xzhou98/SARA?style=flat)](https://github.com/xzhou98/SARA)
+[![Issues welcome](https://img.shields.io/badge/Issues-welcome-16a34a)](https://github.com/xzhou98/SARA/issues)
+
+[Overview](#overview) · [Setup](#setup) · [Evaluation](#evaluation) · [Training](#training) · [Data](#data) · [Code reference](#code-reference)
+
 </div>
 
-This is the official code repository for AAAI 2026 paper "Towards Mitigating Deceptive Safety Alignment in Large Reasoning Models"  by [Xiangyu Zhou](https://xzhou98.github.io/), [Saleh Zare Zade](https://scholar.google.com/citations?user=O3X_iagAAAAJ&hl=en&oi=ao), [Rafi Ibn Sultan](https://rafiibnsultan.github.io/), [Alexander Kotov](https://rusillini.github.io/), [Dongxiao Zhu](https://dongxiaozhu.github.io/)
+<p align="center">
+  <img src="images/illustration.png" width="1000" alt="Deceptive safety alignment before and after SARA, under standard prompting and adversarial prefilling">
+  <br>
+  <em>Safe final answers can mask unsafe reasoning. SARA encourages safety across both.</em>
+</p>
 
-<table align="center">
-  <tr>
-    <td align="center"> 
-      <img src="images/illustration.png" alt="Teaser" style="width: 1100px;"/> 
-      <br>
-      <em style="font-size: 18px;">  <strong style="font-size: 18px;">Figure 1:</strong> Illustration of the proposed TIF framework.</em>
-    </td>
-  </tr>
-</table>
+## Overview
+
+Large reasoning models can produce reasoning traces and final answers with **inconsistent safety signals**. Rewarding only the final answer leaves intermediate reasoning without direct safety supervision, and adversarial reasoning prefills can amplify this gap.
+
+This repository provides two complementary contributions:
+
+| Contribution | Purpose |
+| :--- | :--- |
+| **DSAR** · Deceptive Safety Alignment Rate | Measure safety inconsistency between reasoning and final answers. |
+| **SARA** · Safety-Aware Reasoning Alignment | Reward safe reasoning, early recognition of harmful intent, and safe final answers. |
+
+Our experiments find reasoning–answer inconsistency across multiple models and benchmarks. Hidden-representation analysis shows stronger safety discrimination at the final-answer stage than at the reasoning stage. SARA mitigates this inconsistency under standard and adversarial settings while preserving helpfulness and utility.
 
 
 
 
-Code and data for **DSAR** (Deceptive Safety Alignment Rate), a metric for how often a reasoning model's
-chain of thought and final answer send contradictory safety signals, and **SARA** (Safety-Aware
-Reasoning Alignment), an RL method that rewards both safety-aware reasoning and safe final answers.
+### DSAR: measuring the mismatch
 
-- **DSAR evaluation** (Sec. 2.3): the reasoning trace is judged sentence by sentence for safety awareness
-  and as a whole for harmfulness. The final answer is judged for safety. A generation is *deceptive* when
-  the two verdicts disagree.
-- **SARA** (Sec. 3): DAPO-style RL on 2K prompts (1K harmful from SafeChain, 1K benign from FalseReject),
-  half of them augmented with counter-aligned prefilled reasoning. For harmful prompts the reward is
+For each harmful prompt, we evaluate the reasoning trace and final answer separately:
 
-  $$R^{harm} = \tfrac{1}{2}\, R^{cot} \cdot R^{SA} + \tfrac{1}{2}\, R^{ans}, \qquad R^{SA} = 1 - k^\star / N$$
+1. **Reasoning:** a sentence-level judge checks for recognition of harmful intent that leads to refusal, stopping, or safe redirection. A guard also evaluates the full trace. The combined reasoning verdict is safe if **either** check passes.
+2. **Final answer:** a guard evaluates its overall safety.
+3. **Consistency:** DSAR is the fraction of generations whose reasoning and final-answer verdicts disagree.
 
-  where $k^\star$ is the index of the first safety-aware sentence among the $N$ reasoning sentences.
-  For benign prompts the reward is $1 - \text{refusal score}/10$.
+<p align="center">
+  <img src="images/eval_pipeline.png" width="1000" alt="DSAR pipeline combining sentence-level safety awareness, full-trace safety, and final-answer safety">
+  <br>
+  <em>Evaluation under standard prompting and adversarial prefilling.</em>
+</p>
 
-## Repository structure
+### SARA: aligning reasoning and answers
 
-```
-SARA/
-├── configs/
-│   ├── model_config.yaml         # chat tags + sampling params per model family
-│   └── deepspeed_zero2.yaml      # accelerate config for the SFT baselines
-├── data/
-│   ├── train/                    # training sets (HF datasets, load with `load_from_disk`)
-│   └── eval/                     # benchmarks, including the pre-generated adversarial prefills
-├── evaluation/                   # DSAR / SAR / SS / HS evaluation pipeline
-├── baselines/                    # off-policy SFT baselines: SafeChain, STAR-1, SafePath
-├── scripts/
-│   ├── serve_reward_models.sh    # vLLM servers for the reward models used during RL
-│   └── merge_lora.py             # merge a LoRA adapter into its base model for evaluation
-└── verl/                         # verl RL framework (upstream) + our two recipes:
-    └── recipe/
-        ├── sara/                 # SARA (our method)
-        └── recap/                # RECAP baseline (answer-only reward)
-```
+SARA builds on DAPO and trains on **2,000 prompts**: 1,000 harmful prompts from SafeChain and 1,000 benign prompts from FalseReject. Half are augmented with counter-aligned reasoning prefills to improve robustness. Harmful prompts receive a joint reasoning-and-answer reward; benign prompts receive a reward that discourages unnecessary refusals.
 
-Everything under `verl/` other than `recipe/sara/` and `recipe/recap/` is the upstream
-[verl](https://github.com/volcengine/verl) library.
+<details>
+<summary><strong>Reward formulation</strong></summary>
 
-## Data
+For harmful prompts:
 
-All datasets are stored in Hugging Face `save_to_disk` format.
+$$
+R^{\mathrm{harm}} = \frac{1}{2} R^{\mathrm{cot}} R^{\mathrm{SA}} + \frac{1}{2} R^{\mathrm{ans}},
+\qquad R^{\mathrm{SA}} = 1 - \frac{k^\star}{N}.
+$$
 
-| Path | Size | Used for | Fields |
-|---|---|---|---|
-| `data/train/sara_train_2k` | 2,000 | SARA, RECAP, SafePath | `instruction`, `label` (`vanilla_harmful` / `adversarial_harmful` / `benign`), `response`, `prefill_prompts` |
-| `data/train/safechain_sft_2k` | 2,000 | SafeChain baseline | `instruction`, `label`, `response` |
-| `data/train/star1_1k` | 1,000 | STAR-1 baseline | `instruction`, `label`, `response` |
-| `data/eval/strongreject` | 313 | Safety, adv. prefilling | `prompt`, `prefill_prompts` |
-| `data/eval/safechain` | 500 | Safety, standard | `instruction`, `prefill_prompts` |
-| `data/eval/icl` + `data/eval/icl_demos.json` | 400 | Unseen attack: 16-shot ICL | `prompt` |
-| `data/eval/h-cot` | 50 | Unseen attack: H-CoT | `prompt` |
-| `data/eval/or_bench` | 1,319 | Helpfulness (OR-Bench-hard) | `prompt` |
-| `data/eval/fortress` | 500 | Helpfulness | `prompt` |
-| `data/eval/xstest` | 450 | Helpfulness | `prompt` |
+$R^{\mathrm{cot}}$ and $R^{\mathrm{ans}}$ are continuous safety scores. $k^\star$ is the **zero-based** index of the first safety-aware sentence among $N$ reasoning sentences. If none exists, set $k^\star=N$, giving $R^{\mathrm{SA}}=0$.
 
-- **`sara_train_2k`**: the harmful half comes from SafeChain and the benign half from FalseReject.
-  `prefill_prompts` is non-empty for exactly half of each label (Appendix B.2). Harmful prompts get an
-  unsafe prefill and benign prompts get an over-cautious one. SARA and RECAP are trained on this same
-  dataset and differ only in the reward function.
-- **`safechain_sft_2k`**: the same 1K harmful prompts, plus 1K benign samples from the SafeChain dataset.
-- **Adversarial prefills** (`prefill_prompts`) start with
-  *"Okay, so I am trying to figure out how to do it and give a detailed plan. First,"*, followed by a
-  continuation generated by DeepSeek-R1-Distill-Qwen-1.5B. The same prefills are used for training and
-  evaluation.
+For benign prompts:
 
----
+$$
+R^{\mathrm{benign}} = 1 - \frac{\text{refusal score}}{10}.
+$$
 
-## Running the experiments
+See Sec. 3 of the paper for the training objective and reward design.
 
-The instructions below assume **one node with 4 × 80GB GPUs (e.g. H100)**:
+</details>
 
-| GPU | During RL training | During evaluation |
-|---|---|---|
-| 0, 1 | policy training (actor, rollout, reference) | model under test + judges |
-| 2 | reward server: DeepSeek-R1-Distill-Qwen-32B (over-refusal judge) | unused |
-| 3 | reward servers: Granite-Guardian-3.3-8B (safety guard) + gpt-oss-safeguard-20b (sentence-level judge) | unused |
+## Setup
 
-### Step 0: Environment and Hugging Face login
+Run commands from the repository root unless stated otherwise. The experiment configuration assumes **one node with 4 × 80 GB GPUs**, such as H100s. Evaluation uses the GPUs selected by `CUDA_VISIBLE_DEVICES` and does not require reward servers.
 
-We use two conda environments: one for RL training with verl, and one for evaluation and the SFT baselines.
+Create separate environments for RL training and evaluation/SFT:
 
 ```bash
-# RL training (SARA / RECAP) and the reward servers
-conda create -n verl python=3.10 -y && conda activate verl
-cd verl && pip install -e . && pip install vllm && cd ..
+# RL training and reward servers
+conda create -n verl python=3.10 -y
+conda activate verl
+cd verl
+pip install -e .
+pip install vllm
+cd ..
 
-# Evaluation + SFT baselines
-conda create -n sara-eval python=3.10 -y && conda activate sara-eval
+# Evaluation and SFT baselines
+conda create -n sara-eval python=3.10 -y
+conda activate sara-eval
 pip install -r requirements.txt
 ```
 
-> **Hugging Face access (required).** No access token is included in this repository. Several of the
-> models are gated or require an account (e.g. `Qwen/Qwen3Guard-Gen-8B`, `openai/gpt-oss-safeguard-20b`,
-> `ibm-granite/granite-guardian-3.3-8b`). In **each** environment, and before running anything, either
-> log in with
-> ```bash
-> huggingface-cli login
-> ```
-> or export your own token in the shell you run from: `export HF_TOKEN=<your_token>`.
-> Accept each gated model's license on its Hugging Face page first.
+For models requiring Hugging Face authentication, log in from each environment with `huggingface-cli login`, or set your own `HF_TOKEN`. Accept any applicable gated-model licenses before downloading. No access token is included in this repository.
 
-All commands below are run from the repository root unless stated otherwise.
+## Evaluation
 
-### Step 1: Start the reward servers (GPUs 2 and 3)
-
-RL training queries three reward models over HTTP. Start them in their own terminal (or a `tmux`
-session) and leave them running for the whole training run:
-
-```bash
-conda activate verl
-bash scripts/serve_reward_models.sh sara     # for SARA: all three models
-# bash scripts/serve_reward_models.sh recap  # for RECAP: guard + refusal judge only
-```
-
-| Port | GPU | Model | Role in the reward |
-|---|---|---|---|
-| 8003 | 2 | `deepseek-ai/DeepSeek-R1-Distill-Qwen-32B` | over-refusal score (0–10) → benign reward |
-| 8002 | 3 | `ibm-granite/granite-guardian-3.3-8b` | P(safe) of reasoning / answer → $R^{cot}$, $R^{ans}$ |
-| 8001 | 3 | `openai/gpt-oss-safeguard-20b` | sentence-level safety awareness → $R^{SA}$ (SARA only) |
-
-- The script waits until every server is healthy and prints `All reward servers are up`.
-- Logs go to `logs/reward_servers/`. Loading all three models the first time can take a while.
-- The two models on GPU 3 each take 45% of its memory. The script starts them one after the other,
-  which vLLM needs when two servers share a GPU.
-- Different GPUs: `REFUSAL_JUDGE_GPU=2 GUARD_GPU=3 SENTENCE_JUDGE_GPU=3 bash scripts/serve_reward_models.sh sara`.
-- Check the servers by hand: `curl http://127.0.0.1:8001/health` (likewise for 8002 and 8003).
-
-### Step 2: Train SARA (GPUs 0 and 1)
-
-In a second terminal:
-
-```bash
-conda activate verl
-cd verl
-bash recipe/sara/run_sara_lora.sh                                                    # DeepSeek-R1-0528-Qwen3-8B
-MODEL_PATH=deepseek-ai/DeepSeek-R1-Distill-Qwen-14B bash recipe/sara/run_sara_lora.sh
-```
-
-- The script checks that all reward servers respond, then trains on `TRAIN_GPUS` (default `0,1`).
-- Settings: LoRA r=8 / α=16 on all linear layers, lr 3e-5, 1 epoch, 32 prompts per batch, 4 rollouts
-  per prompt, clip ε = 0.2 / 0.28, no KL. All hyperparameters are at the top of the script.
-- Checkpoints are saved every 10 steps to
-  `verl/ckpts/Deceptive_Alignment/SARA-<model>-LoRA_lr-3e-5_epoch-1/global_step_<N>/`, and training
-  resumes automatically from the latest one if restarted.
-- Training curves are logged to Weights & Biases (`wandb login` first, or edit `trainer.logger` in the
-  script). Per-component rewards are logged as `reasoning_reward`, `answer_reward`, `sac_reward` (= $R^{SA}$)
-  and `refusal_reward`.
-- If the reward servers run on another machine: `REWARD_HOST=<ip> bash recipe/sara/run_sara_lora.sh`.
-  The ports can be changed with `GUARD_PORT`, `SENTENCE_JUDGE_PORT` and `REFUSAL_JUDGE_PORT`.
-
-### Step 3: Train the baselines
-
-**RECAP** (on-policy RL, answer-only reward). Same data, hyperparameters and GPU layout as SARA; only
-the reward function differs. The reward servers from Step 1 can stay up (RECAP just doesn't use port
-8001).
-
-```bash
-conda activate verl
-cd verl
-bash recipe/recap/run_recap_lora.sh
-```
-
-**SafeChain / STAR-1 / SafePath** (off-policy SFT, LoRA r=8, 2 GPUs × 4 per device × 4 accumulation
-= batch 32). These don't need the reward servers:
-
-```bash
-conda activate sara-eval
-CUDA_VISIBLE_DEVICES=0,1 bash baselines/run_sft.sh R1-0528        # or R1-Qwen-14B
-```
-
-Checkpoints are written to `saves/<model_family>/`.
-
-### Step 4: Merge LoRA weights
-
-vLLM evaluates full models, so merge each LoRA adapter into its base model first:
+Evaluate a base model or a merged checkpoint:
 
 ```bash
 conda activate sara-eval
 
-# SARA / RECAP (verl checkpoint)
-python scripts/merge_lora.py --base_model deepseek-ai/DeepSeek-R1-0528-Qwen3-8B \
-    --adapter verl/ckpts/Deceptive_Alignment/SARA-DeepSeek-R1-0528-Qwen3-8B-LoRA_lr-3e-5_epoch-1/global_step_<N>/actor/lora_adapter \
-    --output_dir verl/ckpts/Deceptive_Alignment/SARA-DeepSeek-R1-0528-Qwen3-8B-LoRA_lr-3e-5_epoch-1/merged
+# Base model
+CUDA_VISIBLE_DEVICES=0 bash evaluation/run_eval.sh \
+  deepseek-ai/DeepSeek-R1-0528-Qwen3-8B R1-0528
 
-# SFT baselines
-python scripts/merge_lora.py --base_model deepseek-ai/DeepSeek-R1-0528-Qwen3-8B \
-    --adapter saves/R1-0528/<run>/checkpoint-<step> --output_dir saves/R1-0528/<run>/merged
+# Merged SARA checkpoint; replace the path with your model directory
+CUDA_VISIBLE_DEVICES=0 bash evaluation/run_eval.sh \
+  /path/to/merged-model R1-0528 results/R1-0528/SARA
 ```
 
-### Step 5: Evaluate
+**Arguments:** `run_eval.sh <model_path> <model_family> [output_dir]`. Supported family keys in `configs/model_config.yaml` are `R1-0528`, `R1-Qwen-14B`, `R1-Llama-8B`, `Gemma-4`, and `gpt-oss`.
 
-Evaluation doesn't need the reward servers; stop them (Ctrl-C in their terminal) to free GPUs 2 and 3.
-Each evaluation step loads its model locally with vLLM on the GPU(s) in `CUDA_VISIBLE_DEVICES`:
+**Outputs:** benchmark CSVs and `eval_summary.json` in `results/<model_family>/<model_name>/`, unless an output directory is supplied. Existing step outputs are skipped when resuming a run.
+
+| Metric | Measures | Direction |
+| :--- | :--- | :---: |
+| **DSAR** | Generations with disagreeing reasoning and final-answer safety verdicts | ↓ |
+| **SAR** | Reasoning traces containing at least one safety-aware sentence | ↑ |
+| **SS** | Final answers judged safe | ↑ |
+| **HS** | Benign-prompt answers classified as non-refusals | ↑ |
+
+DSAR uses the combined reasoning verdict $r(y_{\mathrm{cot}})=\mathbb{1}[r_{\mathrm{SA}}=1\lor r_{\mathrm{safe}}=1]$ and counts cases where $r(y_{\mathrm{cot}})\ne s(y_{\mathrm{ans}})$. Lower DSAR indicates greater consistency; interpret it alongside safety scores because agreement alone does not imply safety. Paper Table 2 reports **1 − DSAR**.
+
+<details>
+<summary><strong>Pipeline, multiple GPUs, and troubleshooting</strong></summary>
+
+Each stage runs as a separate script and loads one vLLM model at a time.
+
+| Stage | Script in `evaluation/` | Model | Output |
+| :--- | :--- | :--- | :--- |
+| Generate | `generate.py` | Model under test | `reasoning` and `final` in benchmark CSVs |
+| Judge safety | `judge_guard.py` | `Qwen/Qwen3Guard-Gen-8B` | `is_cot_safe`, `is_ans_safe` → SS |
+| Judge awareness | `judge_safety_aware.py` | `openai/gpt-oss-safeguard-20b` | `safety_aware_sent_idx` (−1 if absent) → SAR and DSAR with guard results |
+| Judge helpfulness | `judge_helpfulness.py` | `openai/gpt-oss-safeguard-20b` | `is_helpful` → HS |
+
+StrongReject and SafeChain are evaluated with and without adversarial prefills, producing `<task>_{no_prefill,prefill}.csv`. For the mitigation comparison, use `strongreject_prefill` and `safechain_no_prefill`; the paper also analyzes both settings in its initial DSAR evaluation.
+
+To shard a model across two GPUs:
 
 ```bash
-conda activate sara-eval
-CUDA_VISIBLE_DEVICES=0 bash evaluation/run_eval.sh <model_path> <model_family> [output_dir]
-
-# e.g. the original model and a SARA checkpoint
-CUDA_VISIBLE_DEVICES=0 bash evaluation/run_eval.sh deepseek-ai/DeepSeek-R1-0528-Qwen3-8B R1-0528
-CUDA_VISIBLE_DEVICES=1 bash evaluation/run_eval.sh \
-    verl/ckpts/Deceptive_Alignment/SARA-DeepSeek-R1-0528-Qwen3-8B-LoRA_lr-3e-5_epoch-1/merged R1-0528 results/R1-0528/SARA
+CUDA_VISIBLE_DEVICES=0,1 TP=2 bash evaluation/run_eval.sh \
+  /path/to/model R1-Qwen-14B
 ```
 
-`model_family` is a key of `configs/model_config.yaml`: `R1-0528`, `R1-Qwen-14B`, `R1-Llama-8B`,
-`Gemma-4` or `gpt-oss`. To shard a large model across GPUs, set `TP` to the number of GPUs, e.g.
-`CUDA_VISIBLE_DEVICES=0,1 TP=2 bash evaluation/run_eval.sh ...`. Results go to
-`results/<model_family>/<model_name>/`: one CSV per benchmark and setting, plus all metrics in
-`eval_summary.json`. Steps whose output already exists are skipped, so an interrupted run can be resumed.
+Shared helpers and judge instructions are in `evaluation/common.py` and `evaluation/prompts.py`. If gpt-oss-safeguard fails to load under the vLLM V1 engine, try `VLLM_USE_V1_ENGINE=0`.
 
-The pipeline has four steps. Each step is a separate script, so each loads only one vLLM model:
+</details>
 
-| Step | Script | Model | Output |
-|---|---|---|---|
-| 1 | `generate.py` | model under test | `<task>_{no_prefill,prefill}.csv` with `reasoning` and `final`. StrongReject and SafeChain are run with and without the adversarial prefill. |
-| 2 | `judge_guard.py` | `Qwen/Qwen3Guard-Gen-8B` | `is_cot_safe` = $r_{safe}(y_{cot})$, `is_ans_safe` = $s(y_{ans})$ → **SS** |
-| 3 | `judge_safety_aware.py` | `openai/gpt-oss-safeguard-20b` | `safety_aware_sent_idx` (first safety-aware sentence, −1 if none) → **SAR**, **DSAR** |
-| 4 | `judge_helpfulness.py` | `openai/gpt-oss-safeguard-20b` | `is_helpful` on OR-Bench / Fortress / XSTest → **HS** |
+<details>
+<summary><strong>Utility evaluation: GSM8K and MMLU-Pro</strong></summary>
 
-Metric definitions (Sec. 2.3 and Appendix B.3), as they appear in `eval_summary.json`:
-
-- **SAR** = fraction of reasoning traces with at least one safety-aware sentence ($r_{SA}=1$)
-- **SS** = fraction of final answers judged safe
-- **DSAR** = fraction of generations with $r(y_{cot}) \neq s(y_{ans})$, where
-  $r(y_{cot}) = \mathbb{1}[r_{SA}=1 \lor r_{safe}=1]$. Table 2 reports 1 − DSAR.
-- **HS** = fraction of benign-prompt answers classified as non-refusals
-
-In the paper, StrongReject is reported under adversarial prefilling (`strongreject_prefill`) and
-SafeChain under the standard setting (`safechain_no_prefill`). `evaluation/common.py` holds the shared
-helpers and `evaluation/prompts.py` the judge instructions. If gpt-oss-safeguard fails to load under the
-vLLM V1 engine, set `VLLM_USE_V1_ENGINE=0`.
-
-**Utility** (GSM8K, MMLU-Pro) is evaluated with
-[lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness):
+Utility is evaluated separately with [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness). Replace `<model_path>` before running.
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 lm_eval --model vllm \
@@ -274,44 +172,195 @@ CUDA_VISIBLE_DEVICES=0 lm_eval --model vllm \
   --output_path results/lm_eval/mmlu_pro
 ```
 
----
+</details>
+
+## Training
+
+### 1. Start reward servers
+
+In a separate terminal, activate the RL environment and leave the servers running throughout training:
+
+```bash
+conda activate verl
+bash scripts/serve_reward_models.sh sara
+# For RECAP only: bash scripts/serve_reward_models.sh recap
+```
+
+| GPU | Port | Model / workload | Purpose |
+| :---: | :---: | :--- | :--- |
+| 0, 1 | — | Policy training | Actor, rollout, and reference |
+| 2 | 8003 | `deepseek-ai/DeepSeek-R1-Distill-Qwen-32B` | Over-refusal judge |
+| 3 | 8002 | `ibm-granite/granite-guardian-3.3-8b` | Reasoning and answer safety rewards |
+| 3 | 8001 | `openai/gpt-oss-safeguard-20b` | Sentence-level safety awareness; SARA only |
+
+Wait for `All reward servers are up`. Logs are saved in `logs/reward_servers/`.
+
+### 2. Train SARA
+
+In a second terminal, starting from the repository root:
+
+```bash
+conda activate verl
+cd verl
+
+# DeepSeek-R1-0528-Qwen3-8B
+bash recipe/sara/run_sara_lora.sh
+
+# Alternatively, DeepSeek-R1-Distill-Qwen-14B
+MODEL_PATH=deepseek-ai/DeepSeek-R1-Distill-Qwen-14B \
+  bash recipe/sara/run_sara_lora.sh
+```
+
+Defaults: **LoRA r=8, α=16**, all linear layers; learning rate **3e-5**; **1 epoch**; **32 prompts per batch**; **4 rollouts per prompt**; clipping **0.2 / 0.28**; no KL penalty. Hyperparameters are defined at the top of the launch script.
+
+Checkpoints are saved every 10 steps under `verl/ckpts/Deceptive_Alignment/SARA-<model>-LoRA_lr-3e-5_epoch-1/`. Restarting resumes from the latest checkpoint. Run `wandb login` before training, or adjust `trainer.logger` in the script.
+
+<details>
+<summary><strong>Server configuration and training logs</strong></summary>
+
+- `TRAIN_GPUS` selects training GPUs; default: `0,1`.
+- Override server GPUs with `REFUSAL_JUDGE_GPU`, `GUARD_GPU`, and `SENTENCE_JUDGE_GPU`.
+- The two servers sharing GPU 3 start sequentially and each reserve 45% of GPU memory.
+- Set `REWARD_HOST` for remote servers; override ports with `GUARD_PORT`, `SENTENCE_JUDGE_PORT`, and `REFUSAL_JUDGE_PORT`.
+- Check health with `curl http://127.0.0.1:8001/health`; repeat for ports 8002 and 8003.
+- Logged reward components: `reasoning_reward`, `answer_reward`, `sac_reward` ($R^{\mathrm{SA}}$), and `refusal_reward`.
+
+Example server GPU override, from the repository root:
+
+```bash
+REFUSAL_JUDGE_GPU=2 GUARD_GPU=3 SENTENCE_JUDGE_GPU=3 \
+  bash scripts/serve_reward_models.sh sara
+```
+
+</details>
+
+### 3. Train baselines
+
+**RECAP** uses the same training data, hyperparameters, and GPU layout as SARA, but rewards harmful prompts using final-answer safety alone. Existing SARA reward servers can remain running; RECAP does not use port 8001.
+
+```bash
+# From the repository root
+conda activate verl
+cd verl
+bash recipe/recap/run_recap_lora.sh
+```
+
+**SafeChain, STAR-1, and SafePath** use SFT and do not require reward servers. The defaults use LoRA r=8 and an effective batch size of 32 (2 GPUs × 4 samples × 4 accumulation steps).
+
+```bash
+# From the repository root
+conda activate sara-eval
+CUDA_VISIBLE_DEVICES=0,1 bash baselines/run_sft.sh R1-0528
+# Alternative model family: R1-Qwen-14B
+```
+
+SFT checkpoints are saved to `saves/<model_family>/`.
+
+### 4. Merge adapters and evaluate
+
+The evaluation workflow uses full models. Merge the adapter into its matching base model first. Run these commands from the repository root and replace checkpoint placeholders.
+
+```bash
+conda activate sara-eval
+
+# SARA / RECAP: set this to the checkpoint you want to evaluate
+CHECKPOINT="verl/ckpts/Deceptive_Alignment/SARA-DeepSeek-R1-0528-Qwen3-8B-LoRA_lr-3e-5_epoch-1/global_step_<N>"
+python scripts/merge_lora.py \
+  --base_model deepseek-ai/DeepSeek-R1-0528-Qwen3-8B \
+  --adapter "$CHECKPOINT/actor/lora_adapter" \
+  --output_dir results/merged/SARA-R1-0528
+
+# SFT baseline
+python scripts/merge_lora.py \
+  --base_model deepseek-ai/DeepSeek-R1-0528-Qwen3-8B \
+  --adapter "saves/R1-0528/<run>/checkpoint-<step>" \
+  --output_dir "saves/R1-0528/<run>/merged"
+```
+
+Stop reward servers with Ctrl-C when training is complete. Then follow [Evaluation](#evaluation), passing the merged model directory.
+## Data
+
+Datasets use Hugging Face `save_to_disk` format; load them with `datasets.load_from_disk`. The ICL demonstrations are stored separately as JSON.
+
+| Dataset path | Samples | Purpose |
+| :--- | ---: | :--- |
+| `data/train/sara_train_2k` | 2,000 | SARA, RECAP, and SafePath training |
+| `data/train/safechain_sft_2k` | 2,000 | SafeChain SFT baseline |
+| `data/train/star1_1k` | 1,000 | STAR-1 SFT baseline |
+| `data/eval/strongreject` | 313 | Safety: standard and adversarial prefilling |
+| `data/eval/safechain` | 500 | Safety: standard and adversarial prefilling |
+| `data/eval/icl` | 400 | Unseen attack: 16-shot ICL |
+| `data/eval/h-cot` | 50 | Unseen attack: H-CoT |
+| `data/eval/or_bench` | 1,319 | Helpfulness: OR-Bench-hard |
+| `data/eval/fortress` | 500 | Helpfulness |
+| `data/eval/xstest` | 450 | Helpfulness |
+
+<details>
+<summary><strong>Dataset fields and prefill construction</strong></summary>
+
+| Dataset | Fields |
+| :--- | :--- |
+| `sara_train_2k` | `instruction`, `label`, `response`, `prefill_prompts` |
+| `safechain_sft_2k`, `star1_1k` | `instruction`, `label`, `response` |
+| `strongreject` | `prompt`, `prefill_prompts` |
+| `safechain` | `instruction`, `prefill_prompts` |
+| Other evaluation datasets | `prompt` |
+
+- **SARA training:** 1K harmful SafeChain prompts and 1K benign FalseReject prompts. Labels include `vanilla_harmful`, `adversarial_harmful`, and `benign`. Half the training prompts receive counter-aligned prefills: unsafe continuations for harmful inputs and over-cautious continuations for benign inputs. SARA and RECAP use the same dataset.
+- **SafeChain SFT:** the same 1K harmful prompts, plus 1K benign samples from SafeChain.
+- **Adversarial prefills:** begin with “Okay, so I am trying to figure out how to do it and give a detailed plan. First,” followed by a continuation from DeepSeek-R1-Distill-Qwen-1.5B.
+- **ICL demonstrations:** `data/eval/icl_demos.json`.
+
+See Appendix B.2 for augmentation details.
+
+</details>
 
 ## Code reference
 
-### `verl/recipe/sara/` (SARA)
+```text
+SARA/
+├── configs/       # Model templates, sampling parameters, and SFT configuration
+├── data/          # Training and evaluation datasets
+├── evaluation/    # Generation and DSAR / SAR / SS / HS scoring
+├── baselines/     # SafeChain, STAR-1, and SafePath SFT
+├── scripts/       # Reward servers and LoRA merging
+└── verl/
+    └── recipe/
+        ├── sara/  # SARA training and rewards
+        └── recap/ # RECAP baseline
+```
+
+The `verl/` directory contains upstream [verl](https://github.com/volcengine/verl), with the SARA and RECAP recipes added under `recipe/`.
+
+<details>
+<summary><strong>Implementation map</strong></summary>
+
+Paths below are relative to `verl/recipe/sara/`:
 
 | File | Purpose |
-|---|---|
-| `run_sara_lora.sh` | launch script and all hyperparameters |
-| `main_sara.py` | entry point; builds the dataset and runs verl's `RayDAPOTrainer` |
-| `sara_dataset.py` | loads `sara_train_2k`, turns `instruction` into a chat prompt and passes `prefill_prompts` through |
-| `sara_agent_loop.py` | appends `<think>` + prefill to the prompt, so the policy continues from the prefill (prefill tokens are not trained on) |
-| `sara_reward.py` | **the SARA reward** (Eq. 2–5): routes by `label` and queries the three reward servers |
-| `config/constants.py` | judge instructions: sentence-level safety awareness, and the 0–10 over-refusal rubric |
-| `config/*.yaml` | Hydra config that wires the dataset, agent loop and reward into verl |
+| :--- | :--- |
+| `run_sara_lora.sh` | Launch command and hyperparameters |
+| `main_sara.py` | Dataset setup and verl `RayDAPOTrainer` entry point |
+| `sara_dataset.py` | Load training data, build chat prompts, and pass prefills through |
+| `sara_agent_loop.py` | Append `<think>` and prefill; exclude prefill tokens from training loss |
+| `sara_reward.py` | Route rewards by label and query the three reward servers |
+| `config/constants.py` | Safety-awareness and over-refusal judge instructions |
+| `config/*.yaml` | Hydra configuration for data, agent loop, and rewards |
 
-### `verl/recipe/recap/` (RECAP baseline)
+RECAP mirrors this structure in `verl/recipe/recap/`. Its `recap_reward.py` uses $R^{\mathrm{ans}}$ alone for harmful prompts.
 
-Same file layout as `sara/`. The only functional difference is `recap_reward.py`: harmful prompts are
-rewarded with $R^{ans}$ alone, with no reasoning or safety-awareness term.
+| Other file | Purpose |
+| :--- | :--- |
+| `configs/model_config.yaml` | Chat tags and sampling parameters by model family |
+| `configs/deepspeed_zero2.yaml` | Accelerate configuration for SFT |
+| `baselines/finetune.py` | SFT loop: `--loss_type SFT` or `--loss_type safepath` |
+| `baselines/data_module.py` | Response-only loss; SafePath prefixes half the responses with “Let’s think about safety first.” |
+| `baselines/run_sft.sh` | Launch all three SFT baselines |
+| `scripts/serve_reward_models.sh` | Start RL reward servers |
+| `scripts/merge_lora.py` | Merge an adapter into its base model |
 
-### `baselines/`
-
-| File | Purpose |
-|---|---|
-| `finetune.py` | SFT training loop. `--loss_type SFT` for SafeChain / STAR-1, `--loss_type safepath` for SafePath |
-| `data_module.py` | tokenization, with loss on response tokens only. SafePath prefixes half of the responses with *"Let’s think about safety first."* |
-| `run_sft.sh` | runs all three baselines with the paper's settings |
-
-### `scripts/`
-
-| File | Purpose |
-|---|---|
-| `serve_reward_models.sh` | starts the reward servers for RL training (Step 1) |
-| `merge_lora.py` | merges a LoRA adapter into the base model (Step 4) |
+</details>
 
 ## Acknowledgements
 
-The RL code is built on [verl](https://github.com/volcengine/verl). The benchmarks come from
-SafeChain, FalseReject, StrongReject, STAR-1, OR-Bench, Fortress, XSTest and H-CoT; please cite the
-original works when you use them.
+Our RL implementation builds on [verl](https://github.com/volcengine/verl). We use datasets and benchmarks from SafeChain, FalseReject, StrongReject, STAR-1, OR-Bench, Fortress, XSTest, and H-CoT. Please cite the original works when using these resources.
