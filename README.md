@@ -11,6 +11,19 @@
 
 This is the official code repository for AAAI 2026 paper "Towards Mitigating Deceptive Safety Alignment in Large Reasoning Models"  by [Xiangyu Zhou](https://xzhou98.github.io/), [Saleh Zare Zade](https://scholar.google.com/citations?user=O3X_iagAAAAJ&hl=en&oi=ao), [Rafi Ibn Sultan](https://rafiibnsultan.github.io/), [Alexander Kotov](https://rusillini.github.io/), [Dongxiao Zhu](https://dongxiaozhu.github.io/)
 
+<table align="center">
+  <tr>
+    <td align="center"> 
+      <img src="images/illustration.png" alt="Teaser" style="width: 1100px;"/> 
+      <br>
+      <em style="font-size: 18px;">  <strong style="font-size: 18px;">Figure 1:</strong> Illustration of the proposed TIF framework.</em>
+    </td>
+  </tr>
+</table>
+
+
+
+
 Code and data for **DSAR** (Deceptive Safety Alignment Rate), a metric for how often a reasoning model's
 chain of thought and final answer send contradictory safety signals, and **SARA** (Safety-Aware
 Reasoning Alignment), an RL method that rewards both safety-aware reasoning and safe final answers.
