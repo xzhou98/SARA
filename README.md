@@ -9,7 +9,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/xzhou98/SARA)](https://github.com/xzhou98/SARA)
 </div>
 
-
+This is the official code repository for AAAI 2026 paper "Towards Mitigating Deceptive Safety Alignment in Large Reasoning Models"  by [Xiangyu Zhou](https://xzhou98.github.io/), [Saleh Zare Zade](https://scholar.google.com/citations?user=O3X_iagAAAAJ&hl=en&oi=ao), [Rafi Ibn Sultan](https://rafiibnsultan.github.io/), [Alexander Kotov](https://rusillini.github.io/), [Dongxiao Zhu](https://dongxiaozhu.github.io/)
 
 Code and data for **DSAR** (Deceptive Safety Alignment Rate), a metric for how often a reasoning model's
 chain of thought and final answer send contradictory safety signals, and **SARA** (Safety-Aware
