@@ -9,14 +9,14 @@ defaults:
 data:
   gen_batch_size: ${data.train_batch_size}
   custom_cls:
-    path: "pkg://recipe.recap_plus.recap_dataset"
-    name: "RECAPDataset"
+    path: "pkg://recipe.sara.sara_dataset"
+    name: "SARADataset"
   instruction_key: instruction
   prefill_key: prefill_prompts
 
 reward:
   custom_reward_function:
-    path: "pkg://recipe.recap_plus.recap_reward"
+    path: "pkg://recipe.sara.sara_reward"
     name: "compute_score"
   reward_manager:
     name: dapo
@@ -31,8 +31,8 @@ reward:
 actor_rollout_ref:
   rollout:
     agent:
-      default_agent_loop: recap_agent
-      agent_loop_config_path: "recipe/recap_plus/config/recap_agent_loops.yaml"
+      default_agent_loop: sara_agent
+      agent_loop_config_path: "recipe/sara/config/sara_agent_loops.yaml"
 
 algorithm:
   filter_groups:
@@ -42,4 +42,4 @@ algorithm:
     max_num_gen_batches: 0
 
 trainer:
-  project_name: verl-recap-plus
+  project_name: verl-sara

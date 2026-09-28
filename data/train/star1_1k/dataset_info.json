@@ -1,0 +1,46 @@
+{
+  "builder_name": "parquet",
+  "citation": "",
+  "config_name": "default",
+  "dataset_name": "star-1",
+  "dataset_size": 2039783,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/UCSC-VLAA/STAR-1@2b6f46f6e90b14cd79967b4312fe78efa63d9841/data/train-00000-of-00001.parquet": {
+      "num_bytes": 918356,
+      "checksum": null
+    }
+  },
+  "download_size": 918356,
+  "features": {
+    "instruction": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "response": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "label": {
+      "dtype": "string",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 2958139,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 2039783,
+      "num_examples": 1000,
+      "dataset_name": "star-1"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}

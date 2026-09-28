@@ -1,5 +1,5 @@
 """
-RECAP dataset: extends RLHFDataset to pass prefill text alongside raw prompts.
+SARA dataset: extends RLHFDataset to pass prefill text alongside raw prompts.
 
 The training data has fields:
   - instruction: the user query (string)
@@ -31,8 +31,8 @@ logger = logging.getLogger(__name__)
 THINK_TAG = "<think>"
 
 
-class RECAPDataset(RLHFDataset):
-    """Dataset for RECAP that yields raw_prompt + prefill_prompts.
+class SARADataset(RLHFDataset):
+    """Dataset for SARA that yields raw_prompt + prefill_prompts.
 
     Expects Arrow/Parquet/JSON data with at least:
       - instruction (str): the user message
@@ -75,7 +75,7 @@ class RECAPDataset(RLHFDataset):
         self.dataframe: datasets.Dataset = datasets.concatenate_datasets(dataframes)
 
         total = len(self.dataframe)
-        print(f"RECAP dataset len: {total}")
+        print(f"SARA dataset len: {total}")
 
         if self.max_samples > 0 and self.max_samples < total:
             if self.shuffle:
@@ -142,7 +142,7 @@ class RECAPDataset(RLHFDataset):
         row_dict["prefill_text"] = row_dict.get(self.prefill_key, "")
 
         if "data_source" not in row_dict:
-            row_dict["data_source"] = row_dict.get("label", "recap")
+            row_dict["data_source"] = row_dict.get("label", "sara")
 
         if "reward_model" not in row_dict:
             row_dict["reward_model"] = {"ground_truth": row_dict.get("response", ""), "style": "rule"}

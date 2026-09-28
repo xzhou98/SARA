@@ -1,0 +1,50 @@
+{
+  "builder_name": "parquet",
+  "citation": "",
+  "config_name": "default",
+  "dataset_name": "strong_reject",
+  "dataset_size": 58879,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/walledai/StrongREJECT@df54272b395ce9e584d2f8140519935425d8549f/data/train-00000-of-00001.parquet": {
+      "num_bytes": 31289,
+      "checksum": null
+    }
+  },
+  "download_size": 31289,
+  "features": {
+    "prompt": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "category": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "source": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "prefill_prompts": {
+      "dtype": "string",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 90168,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 58879,
+      "num_examples": 313,
+      "dataset_name": "strong_reject"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}

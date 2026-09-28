@@ -1,0 +1,22 @@
+{
+  "_data_files": [
+    {
+      "filename": "data-00000-of-00001.arrow"
+    }
+  ],
+  "_fingerprint": "c46412b4b7b1c374",
+  "_format_columns": [
+    "chosen_finals",
+    "chosen_reasonings",
+    "instruction",
+    "label",
+    "prefill_prompts",
+    "reject_finals",
+    "reject_reasonings",
+    "response"
+  ],
+  "_format_kwargs": {},
+  "_format_type": null,
+  "_output_all_columns": false,
+  "_split": null
+}

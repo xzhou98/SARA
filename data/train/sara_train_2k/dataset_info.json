@@ -1,0 +1,40 @@
+{
+  "citation": "",
+  "description": "FalseReject dataset containing prompts with categories and responses",
+  "features": {
+    "instruction": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "label": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "response": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "prefill_prompts": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "reject_finals": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "reject_reasonings": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "chosen_finals": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "chosen_reasonings": {
+      "dtype": "string",
+      "_type": "Value"
+    }
+  },
+  "homepage": "https://huggingface.co/datasets/AmazonScience/FalseReject",
+  "license": ""
+}

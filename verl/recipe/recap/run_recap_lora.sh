@@ -1,27 +1,31 @@
-# bash recipe/recap/run_recap_lora.sh
 #!/usr/bin/env bash
+# RECAP baseline (DAPO-style RL with LoRA): rewards only the safety of the final answer.
+#
+# Run from the `verl/` directory:
+#   bash recipe/recap/run_recap_lora.sh
+# Override the policy model with MODEL_PATH=deepseek-ai/DeepSeek-R1-Distill-Qwen-14B.
+#
+# Training uses TRAIN_GPUS (default 0,1). The reward models must already be served on the other GPUs
+# (see scripts/serve_reward_models.sh):
+#   GUARD_PORT           (default 8002)  ibm-granite/granite-guardian-3.3-8b
+#   REFUSAL_JUDGE_PORT   (default 8003)  deepseek-ai/DeepSeek-R1-Distill-Qwen-32B
 set -xeuo pipefail
 
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+TRAIN_GPUS=${TRAIN_GPUS:-0,1}
 
-project_name='RECAP'
-exp_name='RECAP-DeepSeek-R1-Distill-Qwen-14B-LoRA'
-
-# ---------- Models ----------
-MODEL_PATH="deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
+project_name='Deceptive_Alignment'
+MODEL_PATH=${MODEL_PATH:-"deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"}
+exp_name="RECAP-$(basename "${MODEL_PATH}")-LoRA"
 
 # ---------- Data ----------
-TRAIN_FILE="/home/xzhou19/Deceptive_Alignment_LRM/train_2k_R1-0528_0%"
+TRAIN_FILE="${REPO_ROOT}/data/train/sara_train_2k"
 TEST_FILE="${TRAIN_FILE}"
 
-
-
-SAFEGUARD_HOST="127.0.0.1"
-SAFEGUARD_PORT=8002
-SAFEGUARD_BASE_URL="http://${SAFEGUARD_HOST}:${SAFEGUARD_PORT}"
-
-REWARDMODEL_PORT=8001
-REWARDMODEL_BASE_URL="http://${SAFEGUARD_HOST}:${REWARDMODEL_PORT}"
-
+# ---------- Reward model servers ----------
+REWARD_HOST=${REWARD_HOST:-"127.0.0.1"}
+export GUARD_BASE_URL="http://${REWARD_HOST}:${GUARD_PORT:-8002}"
+export REFUSAL_JUDGE_BASE_URL="http://${REWARD_HOST}:${REFUSAL_JUDGE_PORT:-8003}"
 
 # ---------- LoRA ----------
 lora_rank=8
@@ -48,48 +52,29 @@ gen_prompt_bsz=${train_prompt_bsz}
 train_prompt_mini_bsz=4
 
 # ---------- Checkpoints ----------
-CKPTS_DIR="/expanse/lustre/scratch/${USER}/temp_project/deceptive_alignment/ckpts/${project_name}/${exp_name}_lr-${learning_rate}_epoch-${total_epochs}"
-
-# ---------- Conda envs ----------
-TRAIN_CONDA_ENV="verl"        # needs vLLM >= 0.9 for verl's run_headless API
+CKPTS_DIR=${CKPTS_DIR:-"${REPO_ROOT}/verl/ckpts/${project_name}/${exp_name}_lr-${learning_rate}_epoch-${total_epochs}"}
 
 wait_for_server() {
-    local host=$1
-    local port=$2
-    local name=$3
+    local url=$1
+    local name=$2
     local max_wait=600
     local elapsed=0
-    echo "[RECAP] Waiting for ${name} at ${host}:${port}..."
-    while ! curl -s "http://${host}:${port}/health" > /dev/null 2>&1; do
+    echo "Waiting for ${name} at ${url}..."
+    while ! curl -s "${url}/health" > /dev/null 2>&1; do
         sleep 10
         elapsed=$((elapsed + 10))
         if [ ${elapsed} -ge ${max_wait} ]; then
-            echo "[RECAP] ERROR: ${name} did not start within ${max_wait}s"
+            echo "ERROR: ${name} did not start within ${max_wait}s"
             exit 1
         fi
     done
-    echo "[RECAP] ${name} is ready (took ~${elapsed}s)"
+    echo "${name} is ready"
 }
 
-echo "[RECAP] Using remote safeguard server at ${SAFEGUARD_BASE_URL}"
-wait_for_server "${SAFEGUARD_HOST}" "${SAFEGUARD_PORT}" "Safeguard RM"
+wait_for_server "${GUARD_BASE_URL}" "safety guard"
+wait_for_server "${REFUSAL_JUDGE_BASE_URL}" "refusal judge"
 
-export SAFEGUARD_BASE_URL="${SAFEGUARD_BASE_URL}"
-export SAFEGUARD_HOST="${SAFEGUARD_HOST}"
-export SAFEGUARD_PORT="${SAFEGUARD_PORT}"
-
-export REWARDMODEL_HOST="${SAFEGUARD_HOST}"
-export REWARDMODEL_PORT="${REWARDMODEL_PORT}"
-export REWARDMODEL_BASE_URL="${REWARDMODEL_BASE_URL}"
-
-# ---------- Runtime library + cache paths ----------
-export LD_LIBRARY_PATH="${CONDA_PREFIX:-}/lib:${CONDA_PREFIX:-}/lib/python3.10/site-packages/nvidia/cu13/lib:${LD_LIBRARY_PATH:-}"
-export HF_HOME="/expanse/lustre/scratch/${USER}/temp_project/hf_home"
-export PIP_CACHE_DIR="/expanse/lustre/scratch/${USER}/temp_project/pip_cache"
-
-set +e
-CUDA_VISIBLE_DEVICES=0,1 conda run -n "${TRAIN_CONDA_ENV}" \
-    python3 -m recipe.recap.main_recap \
+CUDA_VISIBLE_DEVICES=${TRAIN_GPUS} python3 -m recipe.recap.main_recap \
     data.train_files="${TRAIN_FILE}" \
     data.val_files="${TEST_FILE}" \
     data.prompt_key=prompt \
@@ -173,12 +158,3 @@ CUDA_VISIBLE_DEVICES=0,1 conda run -n "${TRAIN_CONDA_ENV}" \
     trainer.default_local_dir="${CKPTS_DIR}" \
     trainer.resume_mode=auto \
     trainer.use_legacy_worker_impl=enable
-
-TRAIN_EXIT=$?
-set -e
-
-# ========================== 4. Cleanup ========================================
-echo "[RECAP] Training finished (exit code: ${TRAIN_EXIT})."
-echo "[RECAP] Remote safeguard server at ${SAFEGUARD_BASE_URL} was not managed by this script."
-echo "[RECAP] Done."
-exit ${TRAIN_EXIT}

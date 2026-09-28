@@ -1,0 +1,38 @@
+{
+  "builder_name": "parquet",
+  "citation": "",
+  "config_name": "default",
+  "dataset_name": "malicious_educator_hcot_deep_seek-r1",
+  "dataset_size": 659698,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/DukeCEICenter/Malicious_Educator_hcot_DeepSeek-R1@c9936b87c69b68c4f5b131794c18c087e71621d4/data/train-00000-of-00001.parquet": {
+      "num_bytes": 208005,
+      "checksum": null
+    }
+  },
+  "download_size": 208005,
+  "features": {
+    "prompt": {
+      "dtype": "string",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 867703,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 659698,
+      "num_examples": 50,
+      "dataset_name": "malicious_educator_hcot_deep_seek-r1"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}

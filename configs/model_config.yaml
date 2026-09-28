@@ -1,0 +1,78 @@
+# Per-model chat-format tags and default sampling parameters.
+# The key (e.g. "R1-0528") is what you pass as --model_family.
+
+R1-0528:
+  hf_key: "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
+  system_prompt: ""
+  begin_tag: "<｜begin▁of▁sentence｜>"
+  end_tag: "<｜end▁of▁sentence｜>"
+  user_tag: "<｜User｜>"
+  assistant_tag: "<｜Assistant｜>"
+  begin_think: "<think>\n"
+  end_think: "\n</think>\n\n"
+  begin_answer: ""
+  flash_attention2: "true"
+  gradient_checkpointing: "true"
+  temp: 0.6
+  top_p: 0.95
+
+R1-Qwen-14B:
+  hf_key: "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
+  system_prompt: ""
+  begin_tag: "<｜begin▁of▁sentence｜>"
+  end_tag: "<｜end▁of▁sentence｜>"
+  user_tag: "<｜User｜>"
+  assistant_tag: "<｜Assistant｜>"
+  begin_think: "<think>\n"
+  end_think: "\n</think>\n\n"
+  begin_answer: ""
+  flash_attention2: "true"
+  gradient_checkpointing: "true"
+  temp: 0.6
+  top_p: 0.95
+
+R1-Llama-8B:
+  hf_key: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
+  system_prompt: ""
+  begin_tag: "<｜begin▁of▁sentence｜>"
+  end_tag: "<｜end▁of▁sentence｜>"
+  user_tag: "<｜User｜>"
+  assistant_tag: "<｜Assistant｜>"
+  begin_think: "<think>\n"
+  end_think: "\n</think>\n\n"
+  begin_answer: ""
+  flash_attention2: "true"
+  gradient_checkpointing: "true"
+  temp: 0.6
+  top_p: 0.95
+
+Gemma-4:
+  hf_key: "google/gemma-4-E4B-it"
+  system_prompt: "You are a helpful assistant."
+  begin_tag: ""
+  end_tag: "<turn|>"
+  user_tag: "<|turn>user\n"
+  assistant_tag: "<turn|>\n<|turn>model\n"
+  begin_think: "<|channel>thought\n"
+  end_think: "<channel|>"
+  begin_answer: ""
+  flash_attention2: "true"
+  gradient_checkpointing: "true"
+  temp: 1.0
+  top_p: 0.95
+  top_k: 64
+
+gpt-oss:
+  hf_key: "openai/gpt-oss-20b"
+  system_prompt: "<|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: 2024-06\nCurrent date: 2025-10-24\n\nReasoning: medium\n\n# Valid channels: analysis, commentary, final. Channel must be included for every message.<|end|>"
+  begin_tag: ""
+  end_tag: "<|end|>"
+  user_tag: "<|start|>user<|message|>"
+  assistant_tag: "<|end|><|start|>assistant"
+  begin_think: "<|channel|>analysis<|message|>"
+  end_think: "<|end|>"
+  begin_answer: "<|start|>assistant<|channel|>final<|message|>"
+  flash_attention2: "false"
+  gradient_checkpointing: "true"
+  temp: 1
+  top_p: 1.0

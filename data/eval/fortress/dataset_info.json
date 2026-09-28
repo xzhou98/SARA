@@ -1,0 +1,38 @@
+{
+  "builder_name": "parquet",
+  "citation": "",
+  "config_name": "default",
+  "dataset_name": "fortress_public",
+  "dataset_size": 1268322,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/ScaleAI/fortress_public@0c096becbc75bb12065c8059a53960c7f0d4d35c/data/train-00000-of-00001.parquet": {
+      "num_bytes": 670034,
+      "checksum": null
+    }
+  },
+  "download_size": 670034,
+  "features": {
+    "prompt": {
+      "dtype": "string",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 1938356,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 1268322,
+      "num_examples": 500,
+      "dataset_name": "fortress_public"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}

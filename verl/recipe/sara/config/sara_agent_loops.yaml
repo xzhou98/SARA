@@ -1,2 +1,2 @@
-- name: recap_agent
-  _target_: recipe.recap_plus.recap_agent_loop.RECAPAgentLoop
+- name: sara_agent
+  _target_: recipe.sara.sara_agent_loop.SARAAgentLoop

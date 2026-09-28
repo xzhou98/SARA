@@ -1,5 +1,5 @@
 """
-RECAP agent loop: single-turn agent loop with prefill injection.
+SARA agent loop: single-turn agent loop with prefill injection.
 
 After applying the chat template, this loop appends tokenized "<think>" + prefill_text
 to the prompt_ids so the model generates continuing from the prefill.
@@ -22,8 +22,8 @@ logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
 THINK_TAG = "<think>"
 
 
-@register("recap_agent")
-class RECAPAgentLoop(AgentLoopBase):
+@register("sara_agent")
+class SARAAgentLoop(AgentLoopBase):
     """Single-turn agent loop that injects <think> + prefill text into the prompt."""
 
     def __init__(self, *args, **kwargs):

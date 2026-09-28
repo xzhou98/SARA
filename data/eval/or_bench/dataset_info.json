@@ -1,0 +1,46 @@
+{
+  "builder_name": "csv",
+  "citation": "",
+  "config_name": "or-bench-hard-1k",
+  "dataset_name": "or-bench",
+  "dataset_size": 174607,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/bench-llm/or-bench@e36d8b80e81837c8a8f264bbb2a49f1b32c7e272/or-bench-hard-1k.csv": {
+      "num_bytes": 169255,
+      "checksum": null
+    }
+  },
+  "download_size": 169255,
+  "features": {
+    "prompt": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "category": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "prefill_prompts": {
+      "dtype": "string",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 343862,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 174607,
+      "num_examples": 1319,
+      "dataset_name": "or-bench"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}

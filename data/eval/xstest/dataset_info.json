@@ -1,0 +1,54 @@
+{
+  "builder_name": "parquet",
+  "citation": "",
+  "config_name": "default",
+  "dataset_name": "xs_test",
+  "dataset_size": 43841,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/walledai/XSTest@f1d713187c61b6ae64e602d74f0b3d812cc2e8e8/data/train-00000-of-00001.parquet": {
+      "num_bytes": 16964,
+      "checksum": null
+    }
+  },
+  "download_size": 16964,
+  "features": {
+    "prompt": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "focus": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "type": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "note": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "label": {
+      "dtype": "string",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 60805,
+  "splits": {
+    "test": {
+      "name": "test",
+      "num_bytes": 43841,
+      "num_examples": 450,
+      "dataset_name": "xs_test"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}
