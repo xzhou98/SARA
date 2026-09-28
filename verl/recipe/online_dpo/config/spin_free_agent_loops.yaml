@@ -1,2 +1,0 @@
-- name: spin_free_agent
-  _target_: recipe.online_dpo.spin_free_agent_loop.SpinFreeAgentLoop
