@@ -2,7 +2,7 @@
 
 # Towards Mitigating Deceptive Safety Alignment<br>in Large Reasoning Models
 
-**NeurIPS 2026 · Official implementation**
+**This is the official code repository for NeurIPS 2026 paper** "[Towards Mitigating Deceptive Safety Alignment in Large Reasoning Models](https://arxiv.org/pdf/2609.36254)"
 
 [Xiangyu Zhou](https://xzhou98.github.io/) · [Saleh Zare Zade](https://scholar.google.com/citations?user=O3X_iagAAAAJ&hl=en&oi=ao) · [Rafi Ibn Sultan](https://rafiibnsultan.github.io/) · [Alexander Kotov](https://rusillini.github.io/) · [Dongxiao Zhu](https://dongxiaozhu.github.io/)
 
